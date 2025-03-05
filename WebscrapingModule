@@ -1,0 +1,144 @@
+#Question1
+!pip install yfinance
+import yfinance as yf
+tsla = yf.Ticker("TSLA")
+tesla_data = tsla.history(period="max")
+tesla_data.reset_index(inplace=True)
+print(tesla_data.head())
+
+#Question2
+from bs4 import BeautifulSoup
+import requests
+url = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-PY0220EN-SkillsNetwork/labs/project/revenue.htm"
+response = requests.get(url)
+html_data = response.text
+soup = BeautifulSoup(html_data, "html.parser")
+print (soup.prettify()[:500])
+
+import pandas as pd
+tables = pd.read_html(html_data)
+tesla_revenue = tables[0]  # Assuming it's the first table
+tesla_revenue.columns = ["Date", "Revenue"]
+print(tesla_revenue.head())
+
+tesla_revenue["Revenue"] = tesla_revenue["Revenue"].str.replace(',|\$', "", regex=True)
+print(tesla_revenue.head())
+
+tesla_revenue.dropna(inplace=True)
+tesla_revenue = tesla_revenue[tesla_revenue['Revenue'] != ""]
+print(tesla_revenue.head())
+
+print(tesla_revenue.tail())
+
+#Question3
+
+import yfinance as yf
+gme = yf.Ticker("GME")
+info = gme.info
+print("Stock Info:", info)
+today = gme.history(period="1d")
+print("Today's Data:\n", today)
+
+import yfinance as yf
+gme = yf.Ticker("GME")
+gme_data = gme.history(period="max")
+print(gme_data.head())
+
+import yfinance as yf
+gme = yf.Ticker("GME")
+gme_data = gme.history(period="max")
+gme_data.reset_index(inplace=True)
+print(gme_data.head())
+
+#Question4
+
+from bs4 import BeautifulSoup
+import requests
+url = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-PY0220EN-SkillsNetwork/labs/project/stock.html"
+response = requests.get(url)
+html_data_2 = response.text
+soup = BeautifulSoup(html_data_2, 'html.parser')
+
+
+import requests
+from bs4 import BeautifulSoup
+
+url = "https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-PY0220EN-SkillsNetwork/labs/project/stock.html"
+response = requests.get(url)
+soup = BeautifulSoup(response.text, 'html.parser')
+
+table = soup.find("table")
+rows = table.find_all("tr")
+headers = [header.text.strip() for header in rows[0].find_all("th")]
+
+gme_revenue = []
+for row in rows[1:]:  
+    columns = row.find_all("td")
+    if len(columns) == 2:
+        date = columns[0].text.strip()
+        revenue = columns[1].text.strip().replace("$", "").replace(",", "")
+        gme_revenue.append({"Date": date, "Revenue": revenue})
+
+for entry in gme_revenue[-5:]:  
+    print(entry)
+
+#Question5
+
+import yfinance as yf
+import matplotlib.pyplot as plt
+
+def make_graph(data, title):
+    plt.figure(figsize=(10, 5))
+    plt.plot(data['Date'], data['Close'], label='Closing Price', color='blue')
+    plt.xlabel("Date")
+    plt.ylabel("Stock Price (USD)")
+    plt.title(title)
+    plt.legend()
+    plt.xticks(rotation=45)
+    plt.grid()
+    plt.show()
+
+tsla = yf.Ticker("TSLA")
+
+tsla_data = tsla.history(period="max")
+tsla_data.reset_index(inplace=True)
+tsla_data = tsla_data[tsla_data["Date"] <= "2021-06-30"]
+
+make_graph(tsla_data, "Tesla Stock Price (Up to June 2021)")
+
+
+#Question6
+import yfinance as yf
+import matplotlib.pyplot as plt
+import pandas as pd
+
+def make_graph(stock_data, revenue_data, title):
+    fig, ax1 = plt.subplots(figsize=(10, 5))
+
+    ax1.set_xlabel("Date")
+    ax1.set_ylabel("Stock Price (USD)", color='blue')
+    ax1.plot(stock_data["Date"], stock_data["Close"], label="Closing Price", color='blue')
+    ax1.tick_params(axis='y', labelcolor='blue')
+
+  
+    ax2 = ax1.twinx()
+    ax2.set_ylabel("Revenue (Millions USD)", color='red')
+    ax2.plot(revenue_data["Date"], revenue_data["Revenue"], label="Revenue", color='red')
+    ax2.tick_params(axis='y', labelcolor='red')
+
+   
+    plt.title(title)
+    fig.tight_layout()
+    plt.show()
+
+gme = yf.Ticker("GME")
+gme_data = gme.history(period="max")
+gme_data.reset_index(inplace=True)
+gme_data = gme_data[gme_data["Date"] <= "2021-06-30"]
+if isinstance(gme_revenue, list):  
+    gme_revenue = pd.DataFrame(gme_revenue)  
+gme_revenue.columns = ["Date", "Revenue"]
+gme_revenue["Date"] = pd.to_datetime(gme_revenue["Date"])
+gme_revenue["Revenue"] = gme_revenue["Revenue"].replace(r"[^\d.]", "", regex=True).astype(float)
+make_graph(gme_data, gme_revenue, "GameStop Stock Price & Revenue (Up to June 2021)")
+
